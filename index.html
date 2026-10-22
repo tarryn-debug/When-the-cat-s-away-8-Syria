@@ -426,25 +426,47 @@
     }
 
     /* LEFT-ALIGNED SPOTLIGHT LAYOUT FOR TURKEY & SYRIA */
+    .spotlight-wedge {
+      display: none;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
     .spotlight-view-container.layout-left .spotlight-stack {
-      align-items: flex-start;
-      padding-left: 4rem;
+      display: block;
+      padding-left: 0;
     }
 
     .spotlight-view-container.layout-left .dialog-card {
-      width: 480px;
-      max-width: 90%;
+      position: absolute;
+      left: 6.7%;
+      bottom: 16%;
+      width: 43%;
+      max-width: none;
+      transition: none;
     }
 
     .spotlight-view-container.layout-left .spotlight-beam {
-      width: 620px;
-      max-width: 88%;
-      margin-left: 0;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      max-width: none;
+      height: 100%;
+      aspect-ratio: auto;
+      margin: 0;
+      transition: none;
     }
 
+    .spotlight-view-container.layout-left .spotlight-triangle-clip { display: none; }
+    .spotlight-view-container.layout-left .spotlight-wedge { display: block; }
+
     .spotlight-view-container.layout-left .spotlight-circle-frame {
-      top: 25%;
-      left: calc(65% + var(--dx, 0px));
+      left: var(--cx, 56%);
+      top: var(--cy, 36%);
+      transition: none;
     }
 
     .center-modal {
@@ -536,6 +558,7 @@
       .dialog-card { width: 95%; padding: 1.25rem; }
       .spotlight-circle-frame { width: 90px; height: 90px; }
       .spotlight-view-container.layout-left .spotlight-stack { padding-left: 1rem; }
+      .spotlight-view-container.layout-left .dialog-card { width: 90%; left: 5%; }
     }
   </style>
 </head>
@@ -619,6 +642,11 @@
             <div class="spotlight-triangle-clip">
               <img src="Resources/PastedVector-30.svg" alt="" class="spotlight-triangle-bg">
             </div>
+
+            <!-- NEW: diagonal wedge (Turkey/Syria layout only) -->
+            <svg class="spotlight-wedge" id="spotlight-wedge" aria-hidden="true">
+              <polygon id="spotlight-wedge-poly" fill="#141F52"></polygon>
+            </svg>
 
             <!-- CIRCULAR SPOTLIGHT FRAME -->
             <div class="spotlight-circle-frame" id="spotlight-circle">
@@ -722,8 +750,61 @@
     const viewedMap = new Set();
     let activePin = null;
 
+    // Tangent points from an external point (px, py) to a circle (cx, cy, r)
+    function tangentPoints(px, py, cx, cy, r) {
+      const dx = cx - px, dy = cy - py;
+      const d = Math.hypot(dx, dy);
+      if (d <= r) return [[cx, cy], [cx, cy]];
+      const a = Math.atan2(dy, dx);
+      const o = Math.asin(r / d);
+      const l = Math.sqrt(d * d - r * r);
+      return [a - o, a + o].map(t => [px + l * Math.cos(t), py + l * Math.sin(t)]);
+    }
+
+    // Turkey/Syria layout: card bottom-left, diagonal wedge to the circle
+    function alignLeftLayout(pin) {
+      const app = document.getElementById('interactive-app');
+      const stage = document.querySelector('.stage-view');
+      const stack = document.getElementById('spotlight-stack');
+      const circle = document.getElementById('spotlight-circle');
+      const card = document.querySelector('.dialog-card');
+      const pinImg = pin.querySelector('.pin-img');
+      const wedge = document.getElementById('spotlight-wedge');
+      const poly = document.getElementById('spotlight-wedge-poly');
+
+      card.style.transition = 'none';   // so the card is measured at its final size
+      stack.style.transform = '';
+
+      // Put the circle's own pin exactly over the real map pin
+      const gap = pin.offsetHeight - pinImg.offsetHeight;
+      const tipX = stage.offsetLeft + pin.offsetLeft;
+      const tipY = stage.offsetTop + pin.offsetTop - gap;
+      const size = circle.clientWidth;
+      const cx = tipX - (0.508 - 0.5) * size;
+      const cy = tipY - (0.531 - 0.5) * size;
+      circle.style.setProperty('--cx', cx + 'px');
+      circle.style.setProperty('--cy', cy + 'px');
+
+      // Wedge: card top-left and bottom-right corners -> circle tangent points
+      const r = circle.offsetWidth / 2 - 1;
+      const p1 = [card.offsetLeft, card.offsetTop];
+      const p2 = [card.offsetLeft + card.offsetWidth, card.offsetTop + card.offsetHeight];
+      const t1 = tangentPoints(p1[0], p1[1], cx, cy, r).sort((a, b) => a[1] - b[1])[0]; // upper tangent
+      const t2 = tangentPoints(p2[0], p2[1], cx, cy, r).sort((a, b) => b[0] - a[0])[0]; // right tangent
+
+      wedge.setAttribute('viewBox', '0 0 ' + app.offsetWidth + ' ' + app.offsetHeight);
+      poly.setAttribute('points', [p1, t1, t2, p2].map(p => p.join(',')).join(' '));
+
+      card.style.transition = '';
+    }
+
     function alignSpotlightToPin(pin) {
       if (!pin) return;
+      if (spotlightContainer.classList.contains('layout-left')) {
+        alignLeftLayout(pin);
+        return;
+      }
+
       const app = document.getElementById('interactive-app');
       const stage = document.querySelector('.stage-view');
       const stack = document.getElementById('spotlight-stack');
