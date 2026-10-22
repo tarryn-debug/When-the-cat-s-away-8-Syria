@@ -311,6 +311,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: transform 0.3s ease;
     }
 
     .spotlight-beam {
@@ -321,6 +322,7 @@
       margin-bottom: -1px;
       z-index: 310;
       pointer-events: none;
+      transition: width 0.3s ease, margin 0.3s ease;
     }
 
     .spotlight-triangle-clip {
@@ -349,6 +351,7 @@
       z-index: 320;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
       background-color: #ffffff;
+      transition: left 0.3s ease, top 0.3s ease;
     }
 
     .spotlight-circle-frame img.spotlight-map-bg {
@@ -382,6 +385,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       position: relative;
       z-index: 315;
+      transition: width 0.3s ease, margin 0.3s ease;
     }
 
     .dialog-card h2 {
@@ -419,6 +423,28 @@
 
     .close-card-btn:hover {
       background: var(--color-bg-light);
+    }
+
+    /* LEFT-ALIGNED SPOTLIGHT LAYOUT FOR TURKEY & SYRIA */
+    .spotlight-view-container.layout-left .spotlight-stack {
+      align-items: flex-start;
+      padding-left: 4rem;
+    }
+
+    .spotlight-view-container.layout-left .dialog-card {
+      width: 480px;
+      max-width: 90%;
+    }
+
+    .spotlight-view-container.layout-left .spotlight-beam {
+      width: 620px;
+      max-width: 88%;
+      margin-left: 0;
+    }
+
+    .spotlight-view-container.layout-left .spotlight-circle-frame {
+      top: 25%;
+      left: calc(65% + var(--dx, 0px));
     }
 
     .center-modal {
@@ -509,6 +535,7 @@
       .cover-illustration { width: 60%; }
       .dialog-card { width: 95%; padding: 1.25rem; }
       .spotlight-circle-frame { width: 90px; height: 90px; }
+      .spotlight-view-container.layout-left .spotlight-stack { padding-left: 1rem; }
     }
   </style>
 </head>
@@ -582,7 +609,7 @@
       </div>
     </div>
 
-    <!-- SPOTLIGHT OVERLAY MODAL FOR UKRAINE -->
+    <!-- SPOTLIGHT OVERLAY MODAL -->
     <div class="dark-overlay" id="content-modal">
       <div class="spotlight-view-container" id="spotlight-container">
         <div class="spotlight-stack" id="spotlight-stack">
@@ -648,13 +675,13 @@
         title: "Turkey’s intervention in Syria",
         body: "In October 2019, Turkey launched an attack in northern Syria, shortly after Donald Trump announced the withdrawal of US troops. This withdrawal left the Syrian Democratic Forces and the Kurds, its main allies in its battle against the Islamic State, without US military support. Turkey claimed the attack was an attempt to prevent a “terror corridor” along its southern border.",
         mapImg: "Resources/PastedVector-37.svg",
-        layoutClass: ""
+        layoutClass: "layout-left"
       },
       syria: {
         title: "Obama’s “red line” in Syria",
         body: "In August 2012, Barack Obama gave a warning to Syria's president that the use of chemical weapons by the Assad government in the country's civil war would cross a “red line”. One year later, opposition-held areas near Damascus were struck by missiles containing sarin gas. Hundreds died. Obama asked for a Congressional resolution to authorise military action in Syria but, against a background of popular opposition to such action, the resolution was never voted on. Instead, Russia negotiated a deal under which Syria agreed to destroy its chemical-weapons stockpile and to join the Chemical Weapons Convention.",
         mapImg: "Resources/PastedVector-37.svg",
-        layoutClass: ""
+        layoutClass: "layout-left"
       },
       georgia: {
         title: "The Russo-Georgian war",
@@ -757,7 +784,7 @@
       introModal.classList.remove('active');
     });
 
-    // 3. MAP PINS CLICK
+    // 3. MAP PINS CLICK (UPDATES REGIONAL MAP ASSET AND LAYOUT CLASS)
     document.querySelectorAll('.pin-btn').forEach(pin => {
       pin.addEventListener('click', (e) => {
         const id = e.currentTarget.dataset.id;
