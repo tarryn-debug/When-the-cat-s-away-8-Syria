@@ -469,6 +469,13 @@
       transition: none;
     }
 
+    /* Zoom the map inside the frame so the grey fills right up to the thin white border.
+       The origin is the pin's position, so Turkey stays under the pin while the white ring is pushed out. */
+    .spotlight-view-container.layout-left .spotlight-circle-frame img.spotlight-map-bg {
+      transform: scale(1.17);
+      transform-origin: 50.7% 51.7%;
+    }
+
     .center-modal {
       background: #ffffff;
       border-radius: 8px;
